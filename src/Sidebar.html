@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <base target="_blank">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #faf6ef;
+      --card: #fff;
+      --ink: #20283a;
+      --muted: #756f65;
+      --line: #e8dfcf;
+      --navy: #14385c;
+      --navy-soft: #edf2f8;
+      --gold: #b7872c;
+      --green: #286743;
+      --red: #a43e36;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      min-width: 100%;
+      font: 13.5px/1.55 "Tajawal", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    header {
+      padding: 13px 12px 10px;
+      border-bottom: 3px double var(--navy);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand h1 {
+      margin: 0;
+      color: var(--navy);
+      font: 700 24px/1.1 "Amiri", Georgia, serif;
+    }
+    .brand p { margin: 2px 0 0; color: var(--gold); font-size: 10.5px; font-weight: 700; }
+    .header-actions { display: flex; align-items: center; gap: 4px; }
+    .icon-btn {
+      width: 31px; height: 31px; padding: 0;
+      border: 1px solid var(--line); border-radius: 9px;
+      background: var(--card); color: var(--navy);
+    }
+    #locale-switch {
+      height: 31px; padding: 0 7px;
+      border: 1px solid var(--line); border-radius: 9px;
+      color: var(--navy); background: var(--card); font-weight: 800;
+    }
+    .entitlement {
+      margin: 10px 12px 0;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .entitlement strong { color: var(--navy); }
+    #cap-panel {
+      margin: 10px 12px 0;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--card);
+    }
+    #cap-panel strong { display: block; color: var(--navy); margin-bottom: 4px; }
+    #cap-panel p { margin: 0 0 6px; font-size: 11.5px; line-height: 1.5; }
+    .cap-email {
+      font-family: monospace;
+      user-select: all;
+      word-break: break-all;
+      color: var(--navy);
+      direction: ltr;
+      text-align: left;
+    }
+    .plan-badge {
+      padding: 2px 8px; border-radius: 999px;
+      background: var(--navy-soft); color: var(--navy);
+      font-size: 10px; font-weight: 800;
+    }
+    nav {
+      margin: 10px 12px 0; padding: 4px;
+      background: #f0e8db; border-radius: 12px;
+      display: flex; gap: 4px;
+    }
+    nav button {
+      flex: 1; border: 0; border-radius: 9px;
+      padding: 7px 2px; color: var(--muted); background: transparent;
+      font-weight: 800;
+    }
+    nav button.active {
+      color: var(--navy); background: var(--card);
+      box-shadow: 0 1px 5px rgba(20, 56, 92, .14);
+    }
+    main { flex: 1; overflow-y: auto; padding: 11px 12px 20px; }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .action {
+      width: 100%; margin: 0 0 9px; padding: 11px;
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--card); color: var(--ink);
+      display: flex; gap: 10px; align-items: center;
+      text-align: start;
+    }
+    .action:hover:not(:disabled) {
+      border-color: var(--navy);
+      box-shadow: 0 3px 10px rgba(20, 56, 92, .1);
+    }
+    .action:disabled { opacity: .48; cursor: wait; }
+    /* Not-ready is deliberately lighter than :disabled and keeps the pointer cursor: the
+       step is still clickable, it just explains itself first. */
+    .action.not-ready { opacity: .72; }
+    .action.not-ready .symbol { filter: grayscale(1); }
+    .action.not-ready small { color: var(--navy); }
+    .action.suggested { border-color: var(--navy); }
+    #next-step {
+      display: none; margin: 0 0 10px; padding: 7px 10px; font-size: 11.5px;
+      color: var(--navy); background: #eef2f7; border-radius: 6px;
+    }
+    #prereq-card {
+      display: none; margin: 0 0 10px; padding: 10px;
+      border: 1px solid var(--line); border-radius: 8px; background: #fbfbfc;
+    }
+    #prereq-card p { margin: 0 0 8px; font-size: 12px; line-height: 1.5; }
+    #prereq-card .row { display: flex; gap: 6px; }
+    #prereq-card button { flex: 1; padding: 7px 8px; font-size: 11.5px;
+      border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    #prereq-card button.primary { color: #fff; background: var(--navy); border-color: var(--navy); }
+    .action .symbol {
+      flex: 0 0 35px; height: 35px; border-radius: 10px;
+      background: var(--navy-soft);
+      display: grid; place-items: center; font-size: 17px;
+    }
+    .action .copy { flex: 1; min-width: 0; }
+    .action b { display: block; font-size: 13.5px; }
+    .action small { display: block; margin-top: 2px; color: var(--muted); font-size: 10.8px; }
+    label { display: block; margin: 8px 2px 5px; color: var(--muted); font-size: 11px; font-weight: 800; }
+    input, select, textarea {
+      width: 100%; padding: 8px 9px;
+      border: 1px solid var(--line); border-radius: 9px;
+      background: var(--card); color: var(--ink);
+    }
+    textarea { resize: vertical; min-height: 76px; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid rgba(20, 56, 92, .16); border-color: var(--navy); }
+    .hint { margin: 3px 2px 9px; color: var(--muted); font-size: 10.5px; }
+    #settings {
+      display: none; margin: 10px 12px 0; padding: 11px;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+    }
+    #settings.show { display: block; }
+    #settings h2 { margin: 0 0 5px; font-size: 14px; color: var(--navy); }
+    .row { display: flex; gap: 6px; margin-top: 8px; }
+    .row button, #retry-btn {
+      border: 1px solid var(--line); border-radius: 9px;
+      background: var(--card); padding: 7px 10px; font-weight: 800;
+    }
+    .row .primary, #retry-btn { color: #fff; background: var(--navy); border-color: var(--navy); }
+    #status {
+      display: none; margin-bottom: 10px; padding: 10px;
+      border-radius: 10px; border-inline-start: 3px solid var(--green);
+      background: #eaf4ec; color: var(--green);
+    }
+    #status.error {
+      border-inline-start-color: var(--red); background: #fbeae8; color: var(--red);
+    }
+    #busy { display: none; text-align: center; color: var(--muted); padding: 12px 0; }
+    #busy.show { display: block; }
+    .spinner {
+      display: inline-block; width: 19px; height: 19px;
+      border: 3px solid var(--line); border-top-color: var(--gold);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #retry-btn { display: none; width: 100%; margin: 0 0 10px; }
+    #language-gate {
+      position: fixed; inset: 0; z-index: 10;
+      background: rgba(250, 246, 239, .98);
+      display: none; place-items: center; padding: 18px;
+    }
+    #language-gate.show { display: grid; }
+    .gate-card {
+      width: 100%; max-width: 360px; padding: 22px;
+      border: 1px solid var(--line); border-radius: 16px;
+      background: var(--card); text-align: center;
+    }
+    .gate-card h2 { margin: 0 0 4px; color: var(--navy); font-family: "Amiri", serif; font-size: 25px; }
+    .gate-card p { margin: 0 0 14px; color: var(--muted); }
+    .gate-card button {
+      width: 100%; margin-top: 7px; padding: 10px;
+      border: 1px solid var(--navy); border-radius: 10px;
+      background: var(--card); color: var(--navy); font-weight: 800;
+    }
+    .gate-card button.primary { color: #fff; background: var(--navy); }
+    .wizard {
+      display: none; padding: 11px;
+      border: 1px solid var(--line); border-radius: 13px; background: var(--card);
+    }
+    .wizard.show { display: block; }
+    .wizard-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .wizard h2 { margin: 0; color: var(--navy); font-size: 15px; }
+    .wizard h3 { margin: 12px 0 5px; color: var(--navy); font-size: 13px; }
+    .wizard-close { border: 0; background: transparent; color: var(--muted); font-size: 19px; }
+    .wizard-note {
+      margin: 9px 0; padding: 9px; border-radius: 9px;
+      background: var(--navy-soft); color: var(--navy); font-size: 11px;
+    }
+    .wizard-sample {
+      margin: 6px 0; max-height: 70px; overflow: hidden;
+      color: var(--muted); white-space: pre-wrap;
+    }
+    .choice-row { display: flex; gap: 6px; margin: 7px 0; }
+    .choice-row button {
+      flex: 1; padding: 8px 5px; border: 1px solid var(--line);
+      border-radius: 9px; background: var(--card); color: var(--muted); font-weight: 800;
+    }
+    .choice-row button.active { color: #fff; background: var(--navy); border-color: var(--navy); }
+    .wizard-primary {
+      width: 100%; margin-top: 10px; padding: 9px;
+      border: 1px solid var(--navy); border-radius: 9px;
+      background: var(--navy); color: #fff; font-weight: 800;
+    }
+    #wizard-angles { display: none; }
+    #wizard-angles.show { display: block; }
+    .angle-card {
+      width: 100%; margin: 7px 0; padding: 9px;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: var(--card); color: var(--ink); text-align: start;
+    }
+    .angle-card.active { border: 2px solid var(--navy); background: var(--navy-soft); }
+    .angle-card b { display: block; color: var(--navy); }
+    .angle-card small { display: block; margin-top: 3px; color: var(--muted); }
+    .recommended {
+      display: inline-block; margin-inline-start: 5px; padding: 1px 6px;
+      border-radius: 999px; background: #f4e7c9; color: #765414; font-size: 9px;
+    }
+    /* Sits outside the scroll region: body is a flex column and main takes the free height, so a
+       last child here pins to the bottom of the panel without any positioning. */
+    .site-footer {
+      flex: none; padding: 7px 12px 9px; border-top: 1px solid var(--line);
+      text-align: center; background: var(--paper);
+    }
+    /* direction:ltr follows .cap-email above - a bare domain must not be reordered by the RTL
+       layout, and it reads the same in both interface languages, so only the tooltip is localised. */
+    .site-link {
+      direction: ltr; unicode-bidi: isolate; display: inline-block;
+      color: var(--muted); font-size: 10.5px; text-decoration: none;
+    }
+    .site-link:hover, .site-link:focus { color: var(--navy); text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="language-gate">
+    <div class="gate-card">
+      <h2>عنوان · Onwan</h2>
+      <p>اختر لغة الواجهة · Choose the interface language</p>
+      <button class="primary" onclick="chooseFirstLocale('ar')">العربية</button>
+      <button onclick="chooseFirstLocale('en')">English</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand">
+      <h1 id="brand-name">عنوان</h1>
+      <p data-i18n="tagline">مساعدك التحريري داخل المستند</p>
+    </div>
+    <div class="header-actions">
+      <select id="locale-switch" aria-label="Interface language" onchange="changeLocale(this.value)">
+        <option value="ar">AR</option>
+        <option value="en">EN</option>
+      </select>
+      <button class="icon-btn" data-i18n-title="expand" onclick="expandUi()">↗</button>
+      <button class="icon-btn" data-i18n-title="settings" onclick="toggleSettings()">⚙</button>
+    </div>
+  </header>
+
+  <section class="entitlement">
+    <div><strong data-i18n="access">الوصول</strong><div id="balance-text" class="hint"></div></div>
+    <span id="plan-badge" class="plan-badge">…</span>
+  </section>
+
+  <section id="cap-panel" hidden>
+    <strong data-i18n="capTitle">استُنفدت إجراءاتك المجانية</strong>
+    <p data-i18n="capBody"></p>
+    <p class="cap-email">support@onwan.eu</p>
+    <p class="hint" data-i18n="capInvite"></p>
+  </section>
+
+  <section id="settings">
+    <h2 data-i18n="settings">الإعدادات</h2>
+    <label data-i18n="projectLanguage">لغة المشروع</label>
+    <select id="project-language">
+      <option value="auto" data-i18n="autoDetect">اكتشاف تلقائي</option>
+      <option value="ar">العربية</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="de">Deutsch</option>
+      <option value="es">Español</option>
+    </select>
+    <label data-i18n="styleProfile">ملف الأسلوب</label>
+    <textarea id="style-text" rows="5" data-i18n-placeholder="styleProfileHint"
+      placeholder="الصق قواعد أسلوبك: النبرة، ما يجب تجنّبه، ومقاطع نموذجية."></textarea>
+    <div class="row">
+      <button class="primary" data-i18n="save" onclick="saveSettingsUi()">حفظ</button>
+      <button data-i18n="testService" onclick="testService()">اختبار الخدمة</button>
+    </div>
+    <label data-i18n="licenseCode">رمز الترخيص الاحتياطي</label>
+    <input type="text" id="license-code" placeholder="ONWAN-…">
+    <div class="row">
+      <button data-i18n="activate" onclick="activateLicenseUi()">تفعيل</button>
+    </div>
+    <div id="settings-note" class="hint"></div>
+  </section>
+
+  <nav>
+    <button id="nav-prepare" class="active" data-i18n="prepare" onclick="showTab('prepare')">التحضير</button>
+    <button id="nav-edit" data-i18n="edit" onclick="showTab('edit')">التحرير</button>
+    <button id="nav-verify" data-i18n="verify" onclick="showTab('verify')">التحقق</button>
+  </nav>
+
+  <main>
+    <div id="status"></div>
+    <button id="retry-btn" data-i18n="retryWrite" onclick="retryWrite()">إعادة الكتابة</button>
+    <div id="next-step"></div>
+    <!-- Shown in place of running a step whose prerequisites are not met. It offers the step
+         that would supply what is missing, and always leaves "run anyway" available. -->
+    <div id="prereq-card">
+      <p id="prereq-message"></p>
+      <div class="row">
+        <button class="primary" id="prereq-unblock" onclick="goToUnblockingStep()"></button>
+        <button id="prereq-anyway" onclick="runAnyway()" data-i18n="runAnyway">شغّله على أي حال</button>
+      </div>
+    </div>
+    <div id="busy"><span class="spinner"></span><div data-i18n="working">جارٍ العمل…</div></div>
+
+    <section id="tab-prepare" class="tab active">
+      <div id="prepare-actions">
+        <button class="action" data-action="proposal" onclick="startProposalWizard()">
+          <span class="symbol">🗂️</span>
+          <span class="copy"><b data-i18n="proposal">حضّر المقترح</b><small data-i18n="proposalHelp">اختر نوع القصة والزاوية، ثم أنشئ المقترح ومساحة العمل</small></span>
+        </button>
+        <button class="action" data-action="research" onclick="runActionUi('research')">
+          <span class="symbol">🔎</span>
+          <span class="copy"><b data-i18n="research">بحث مكتبي</b><small data-i18n="researchHelp">نتائج مؤرخة ومسنودة بالمصادر</small></span>
+        </button>
+        <button class="action" data-action="fieldworkPlan" onclick="runActionUi('fieldworkPlan')">
+          <span class="symbol">📍</span>
+          <span class="copy"><b data-i18n="fieldwork">خطة العمل الميداني</b><small data-i18n="fieldworkHelp">خطوات ومصادر ومقابلات ومخاطر</small></span>
+        </button>
+      </div>
+      <section id="proposal-wizard" class="wizard">
+        <div class="wizard-head">
+          <h2 data-i18n="wizardTitle">إعداد المقترح</h2>
+          <button class="wizard-close" onclick="closeProposalWizard()" aria-label="Close">×</button>
+        </div>
+        <div id="wizard-existing" style="display:none">
+          <div class="wizard-note">
+            <b data-i18n="existingFound">وجدتُ مقترحًا ذا معنى في التبويب.</b>
+            <div id="wizard-sample" class="wizard-sample"></div>
+          </div>
+          <div class="choice-row">
+            <button id="source-existing" onclick="chooseWizardSource('existing')" data-i18n="improveExisting">حسّن المقترح الحالي</button>
+            <button id="source-new" onclick="chooseWizardSource('new')" data-i18n="startNew">ابدأ من موضوع جديد</button>
+          </div>
+        </div>
+        <div id="wizard-topic-block">
+          <label data-i18n="topicWanted">ما الموضوع الذي تريد العمل عليه؟</label>
+          <textarea id="wizard-topic" data-i18n-placeholder="topicPlaceholder" placeholder="اكتب موضوعًا واضحًا أو ملاحظات أولية"></textarea>
+        </div>
+        <label data-i18n="storyType">نوع القصة</label>
+        <div class="choice-row">
+          <button id="story-quick" onclick="selectStoryType('quick')" data-i18n="quickStory">قصة سريعة</button>
+          <button id="story-investigation" onclick="selectStoryType('investigation')" data-i18n="investigationStory">تحقيق</button>
+        </div>
+        <div id="wizard-intro-actions">
+          <button class="wizard-primary" onclick="continueProposalWizard()" data-i18n="continueWizard">متابعة</button>
+        </div>
+        <div id="wizard-angles">
+          <h3 data-i18n="chooseAngle">اختر زاوية واحدة</h3>
+          <div id="recommendation-reason" class="hint"></div>
+          <div id="angle-list"></div>
+          <label data-i18n="customAngle">أو اكتب زاويتك الخاصة (اختياري)</label>
+          <textarea id="custom-angle"></textarea>
+          <button class="wizard-primary" onclick="finishProposalWizard()" data-i18n="buildProposal">أنشئ المقترح والتبويبات</button>
+        </div>
+      </section>
+    </section>
+
+    <section id="tab-edit" class="tab">
+      <button class="action" data-action="storyFramework" onclick="runActionUi('storyFramework')">
+        <span class="symbol">🧭</span>
+        <span class="copy"><b data-i18n="framework">هيكل القصة</b><small data-i18n="frameworkHelp">الإطار الأنسب وما ينقص المادة</small></span>
+      </button>
+      <button class="action" data-action="editDraft" onclick="runActionUi('editDraft')">
+        <span class="symbol">✏</span>
+        <span class="copy"><b data-i18n="editDraft">تحرير المسودة</b><small data-i18n="editDraftHelp">نسخة مراجعة غير مدمرة مع أسباب قصيرة</small></span>
+      </button>
+    </section>
+
+    <section id="tab-verify" class="tab">
+      <button class="action" data-action="claimCheck" onclick="runActionUi('claimCheck')">
+        <span class="symbol">✔</span>
+        <span class="copy"><b data-i18n="claimCheck">فحص المصادر</b><small data-i18n="claimCheckHelp">كل ادعاء ورقم واقتباس يحتاج تحققًا</small></span>
+      </button>
+    </section>
+  </main>
+
+  <!-- The panel's only external link. <base target="_blank"> in the head already opens it outside
+       the add-on iframe. data-i18n is deliberately absent: applyLocale() assigns textContent, which
+       would replace the anchor's text - so the localised string goes on the title instead. -->
+  <footer class="site-footer">
+    <a class="site-link" href="https://onwan.eu" rel="noopener"
+       data-i18n-title="websiteTitle" dir="ltr">onwan.eu</a>
+  </footer>
+
+  <script>
+    var STRINGS = {
+      ar: {
+        tagline: 'مساعدك التحريري داخل المستند', expand: 'توسيع عنوان', settings: 'الإعدادات',
+        access: 'الوصول', connecting: 'جارٍ الاتصال…', free: 'مجاني', pro: 'Pro',
+        freeBalance: 'إجراءات مجانية متبقية: {n}', proBalance: 'الرصيد: {n} نقطة',
+        pilotDays: 'متبقٍ {n} يومًا', pilotLastDay: 'آخر يوم في التجربة',
+        pilotEnded: 'انتهت فترة التجربة',
+        lowHint: 'قد يتوفر المزيد، اسأل فقط',
+        capTitle: 'استُنفدت إجراءاتك المجانية',
+        capBody: 'عنوان مجاني ويُموَّل بالمنح، ولذلك الطاقة محدودة. راسلني من حساب Google نفسه الذي تستخدمه هنا وسأضيف المزيد قدر الإمكان، دون مقابل.',
+        capInvite: 'وإن أحببت، أخبرني بما تعمل عليه.',
+        prepare: 'التحضير', edit: 'التحرير', verify: 'التحقق',
+        projectLanguage: 'لغة المشروع', autoDetect: 'اكتشاف تلقائي',
+        styleProfile: 'ملف الأسلوب',
+        styleProfileHint: 'الصق قواعد أسلوبك: النبرة، ما يجب تجنّبه، ومقاطع نموذجية.',
+        save: 'حفظ', testService: 'اختبار الخدمة',
+        licenseCode: 'رمز الترخيص الاحتياطي', activate: 'تفعيل',
+        proposal: 'حضّر المقترح', proposalHelp: 'اختر نوع القصة والزاوية، ثم أنشئ المقترح وبنية التبويبات',
+        wizardTitle: 'إعداد المقترح', existingFound: 'وجدتُ مقترحًا ذا معنى في التبويب.',
+        improveExisting: 'حسّن المقترح الحالي', startNew: 'ابدأ من موضوع جديد',
+        topicWanted: 'ما الموضوع الذي تريد العمل عليه؟', topicPlaceholder: 'اكتب موضوعًا واضحًا أو ملاحظات أولية',
+        storyType: 'نوع القصة', quickStory: 'قصة سريعة', investigationStory: 'تحقيق',
+        continueWizard: 'متابعة', chooseAngle: 'اختر زاوية واحدة', customAngle: 'أو اكتب زاويتك الخاصة (اختياري)',
+        buildProposal: 'أنشئ المقترح وبنية التبويبات', recommended: 'موصى بها',
+        topicRequired: 'اكتب الموضوع أولًا.', angleRequired: 'اختر زاوية أو اكتب زاويتك الخاصة.',
+        research: 'بحث مكتبي', researchHelp: 'نتائج مؤرخة ومسنودة بالمصادر',
+        fieldwork: 'خطة العمل الميداني', fieldworkHelp: 'خطوات ومصادر ومقابلات ومخاطر',
+        framework: 'هيكل القصة', frameworkHelp: 'الإطار الأنسب وما ينقص المادة',
+        editDraft: 'تحرير المسودة', editDraftHelp: 'نسخة مراجعة غير مدمرة مع أسباب قصيرة',
+        claimCheck: 'فحص المصادر', claimCheckHelp: 'كل ادعاء ورقم واقتباس يحتاج تحققًا',
+        needText: 'تحتاج هذه الخطوة نصًا في المستند أولًا.',
+        needProposal: 'تحتاج هذه الخطوة مقترحًا فيه زاوية واضحة.',
+        needDraft: 'تحتاج هذه الخطوة مسودة مكتملة.',
+        runAnyway: 'شغّله على أي حال', startWith: 'ابدأ بـ{step}',
+        nextStep: 'الخطوة التالية المقترحة: {step}',
+        working: 'جارٍ العمل…', retryWrite: 'إعادة الكتابة',
+        saved: 'تم حفظ الإعدادات.', serviceWorks: 'خدمة عنوان تعمل.',
+        activated: 'تم تفعيل الترخيص.', written: 'تمت الكتابة في تبويب «{tab}».',
+        proposalWritten: 'تمت كتابة المقترح وبنية التبويبات في «{tab}». أنشئ التبويبات يدويًا باتباع القائمة أسفل المقترح.',
+        unknownBalance: 'تعذّر تحميل حالة الوصول.',
+        websiteTitle: 'الموقع الإلكتروني لعنوان'
+      },
+      en: {
+        tagline: 'Your editorial assistant inside the document', expand: 'Expand Onwan', settings: 'Settings',
+        access: 'Access', connecting: 'Connecting…', free: 'Free', pro: 'Pro',
+        freeBalance: 'Free actions remaining: {n}', proBalance: 'Credits: {n}',
+        pilotDays: '{n} days left', pilotLastDay: 'Last day of the pilot',
+        pilotEnded: 'Your pilot has ended',
+        lowHint: 'more may be available, just ask',
+        capTitle: 'You have used all your free actions',
+        capBody: 'Onwan is free to use and grant-funded, so capacity is limited. Email me from the same Google account you use here and I will add more where I can, at no charge.',
+        capInvite: 'If you like, tell me what you are working on.',
+        prepare: 'Prepare', edit: 'Edit', verify: 'Verify',
+        projectLanguage: 'Project language', autoDetect: 'Detect automatically',
+        styleProfile: 'Style profile',
+        styleProfileHint: 'Paste your style rules: tone, what to avoid, and sample passages.',
+        save: 'Save', testService: 'Test service',
+        licenseCode: 'Backup licence code', activate: 'Activate',
+        proposal: 'Prepare proposal', proposalHelp: 'Choose the story type and angle, then create the proposal and tab architecture',
+        wizardTitle: 'Prepare proposal', existingFound: 'I found a meaningful proposal in this tab.',
+        improveExisting: 'Improve current proposal', startNew: 'Start from a new topic',
+        topicWanted: 'What topic do you want to work on?', topicPlaceholder: 'Write a clear topic or initial notes',
+        storyType: 'Story type', quickStory: 'Quick story', investigationStory: 'Investigation',
+        continueWizard: 'Continue', chooseAngle: 'Choose one angle', customAngle: 'Or write your own angle (optional)',
+        buildProposal: 'Create proposal and tab architecture', recommended: 'Recommended',
+        topicRequired: 'Write the topic first.', angleRequired: 'Choose an angle or write your own.',
+        research: 'Desk research', researchHelp: 'Dated, sourced findings',
+        fieldwork: 'Fieldwork plan', fieldworkHelp: 'Steps, sources, interviews, and risks',
+        framework: 'Story framework', frameworkHelp: 'The best structure and what the material still needs',
+        editDraft: 'Edit draft', editDraftHelp: 'A non-destructive review version with short reasons',
+        claimCheck: 'Claim checklist', claimCheckHelp: 'Every claim, number, quote, and link needing verification',
+        needText: 'This step needs some text in the document first.',
+        needProposal: 'This step needs a proposal with a clear angle.',
+        needDraft: 'This step needs a finished draft.',
+        runAnyway: 'Run anyway', startWith: 'Start with {step}',
+        nextStep: 'Suggested next step: {step}',
+        working: 'Working…', retryWrite: 'Retry writing',
+        saved: 'Settings saved.', serviceWorks: 'The Onwan service is working.',
+        activated: 'Licence activated.', written: 'Written to the “{tab}” tab.',
+        proposalWritten: 'The proposal and recommended tab architecture were written to “{tab}”. Create the tabs manually using the checklist below the proposal.',
+        unknownBalance: 'Access status could not be loaded.',
+        websiteTitle: 'The Onwan website'
+      }
+    };
+    var state = {
+      locale: 'ar',
+      busy: false,
+      entitlement: null,
+      gates: {},
+      nextStep: '',
+      pendingGate: '',
+      proposal: {
+        context: null,
+        sourceMode: 'new',
+        storyType: 'quick',
+        topic: '',
+        angles: [],
+        selectedIndex: -1
+      }
+    };
+
+    function el(id) { return document.getElementById(id); }
+    function t(key, values) {
+      var text = (STRINGS[state.locale] && STRINGS[state.locale][key]) || key;
+      Object.keys(values || {}).forEach(function (name) {
+        text = text.replace('{' + name + '}', values[name]);
+      });
+      return text;
+    }
+    function applyLocale(locale) {
+      state.locale = locale === 'en' ? 'en' : 'ar';
+      document.documentElement.lang = state.locale;
+      document.documentElement.dir = state.locale === 'ar' ? 'rtl' : 'ltr';
+      el('locale-switch').value = state.locale;
+      el('brand-name').textContent = state.locale === 'ar' ? 'عنوان' : 'Onwan';
+      document.querySelectorAll('[data-i18n]').forEach(function (node) {
+        node.textContent = t(node.getAttribute('data-i18n'));
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach(function (node) {
+        node.title = t(node.getAttribute('data-i18n-title'));
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(function (node) {
+        node.placeholder = t(node.getAttribute('data-i18n-placeholder'));
+      });
+      renderEntitlement();
+      renderGates();
+      renderNextStep();
+    }
+    function chooseFirstLocale(locale) {
+      applyLocale(locale);
+      el('language-gate').classList.remove('show');
+      google.script.run.withSuccessHandler(function () {}).saveSettings({ uiLocale: locale });
+    }
+    function changeLocale(locale) {
+      applyLocale(locale);
+      google.script.run.withSuccessHandler(function () {}).saveSettings({ uiLocale: locale });
+    }
+    function expandUi() { google.script.run.showExpandedOnwan(); }
+    function toggleSettings() { el('settings').classList.toggle('show'); }
+    function showTab(name) {
+      ['prepare', 'edit', 'verify'].forEach(function (tab) {
+        el('tab-' + tab).classList.toggle('active', tab === name);
+        el('nav-' + tab).classList.toggle('active', tab === name);
+      });
+    }
+    function setBusy(value) {
+      state.busy = value;
+      document.querySelectorAll('.action').forEach(function (button) { button.disabled = value; });
+      el('busy').classList.toggle('show', value);
+      if (value) {
+        hideStatus();
+        revealFeedback();
+      }
+    }
+    function revealFeedback() {
+      var main = document.querySelector('main');
+      if (!main) return;
+      main.scrollTop = 0;
+    }
+    function showStatus(message, isError) {
+      var status = el('status');
+      status.textContent = message;
+      status.classList.toggle('error', !!isError);
+      status.style.display = 'block';
+      revealFeedback();
+    }
+    function hideStatus() { el('status').style.display = 'none'; }
+    function showRetry(show) { el('retry-btn').style.display = show ? 'block' : 'none'; }
+    function daysLeft(iso) {
+      if (!iso) return null;
+      var end = new Date(iso).getTime();
+      if (isNaN(end)) return null;
+      return Math.ceil((end - Date.now()) / 86400000);
+    }
+    function renderEntitlement() {
+      var badge = el('plan-badge');
+      var balance = el('balance-text');
+      if (!state.entitlement) {
+        badge.textContent = '…';
+        balance.textContent = t('connecting');
+      } else if (state.entitlement.status === 'expired') {
+        badge.textContent = t('free');
+        balance.textContent = t('pilotEnded');
+      } else if (state.entitlement.plan === 'pro') {
+        badge.textContent = t('pro');
+        var text = t('proBalance', { n: state.entitlement.creditsRemaining });
+        // No expiry means the term has not started, so no day count is shown.
+        var days = daysLeft(state.entitlement.expiresAt);
+        if (days !== null && days > 1) text += ' · ' + t('pilotDays', { n: days });
+        else if (days !== null && days >= 0) text += ' · ' + t('pilotLastDay');
+        balance.textContent = text;
+      } else {
+        badge.textContent = t('free');
+        var left = state.entitlement.freeActionsRemaining;
+        var text = t('freeBalance', { n: left });
+        if (left > 0 && left <= 5) text += ' · ' + t('lowHint');
+        balance.textContent = text;
+      }
+      var capPanel = el('cap-panel');
+      if (capPanel) {
+        var atCap = Boolean(state.entitlement) &&
+          state.entitlement.plan === 'free' &&
+          state.entitlement.freeActionsRemaining === 0;
+        capPanel.hidden = !atCap;
+      }
+    }
+    function refreshEntitlement() {
+      google.script.run.withSuccessHandler(function (response) {
+        if (response.ok) state.entitlement = response.entitlement;
+        renderEntitlement();
+        if (!response.ok) el('balance-text').textContent = t('unknownBalance');
+      }).getEntitlementState();
+    }
+    function startProposalWizard() {
+      if (state.busy) return;
+      setBusy(true);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          setBusy(false);
+          if (!response.ok) {
+            showStatus(response.error, true);
+            return;
+          }
+          var context = response.data;
+          state.proposal.context = context;
+          state.proposal.sourceMode = context.mode === 'proposal' ? 'existing' : 'new';
+          state.proposal.storyType = context.recommendedStoryType || 'quick';
+          state.proposal.topic = context.topicText || '';
+          state.proposal.angles = [];
+          state.proposal.selectedIndex = -1;
+          el('wizard-topic').value = state.proposal.topic;
+          el('custom-angle').value = '';
+          el('wizard-sample').textContent = context.sample || '';
+          el('wizard-existing').style.display =
+            context.mode === 'proposal' ? 'block' : 'none';
+          el('proposal-wizard').classList.add('show');
+          el('prepare-actions').style.display = 'none';
+          el('wizard-angles').classList.remove('show');
+          el('wizard-intro-actions').style.display = 'block';
+          chooseWizardSource(state.proposal.sourceMode);
+          selectStoryType(state.proposal.storyType);
+          hideStatus();
+          revealFeedback();
+        })
+        .withFailureHandler(function (error) {
+          setBusy(false);
+          showStatus(error && error.message ? error.message : 'Error', true);
+        })
+        .getProposalWizardContext();
+    }
+    function closeProposalWizard() {
+      if (state.busy) return;
+      el('proposal-wizard').classList.remove('show');
+      el('prepare-actions').style.display = 'block';
+    }
+    function chooseWizardSource(mode) {
+      state.proposal.sourceMode = mode === 'existing' ? 'existing' : 'new';
+      el('source-existing').classList.toggle('active', state.proposal.sourceMode === 'existing');
+      el('source-new').classList.toggle('active', state.proposal.sourceMode === 'new');
+      el('wizard-topic-block').style.display =
+        state.proposal.sourceMode === 'existing' ? 'none' : 'block';
+    }
+    function selectStoryType(type) {
+      state.proposal.storyType = type === 'investigation' ? 'investigation' : 'quick';
+      el('story-quick').classList.toggle('active', state.proposal.storyType === 'quick');
+      el('story-investigation').classList.toggle(
+        'active',
+        state.proposal.storyType === 'investigation'
+      );
+    }
+    function continueProposalWizard() {
+      if (state.busy) return;
+      if (state.proposal.sourceMode === 'existing') {
+        submitProposalWizard({
+          contextId: state.proposal.context.contextId,
+          projectType: state.proposal.storyType
+        });
+        return;
+      }
+      var topic = el('wizard-topic').value.trim();
+      if (!topic) {
+        showStatus(t('topicRequired'), true);
+        return;
+      }
+      state.proposal.topic = topic;
+      setBusy(true);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          setBusy(false);
+          if (!response.ok) {
+            showStatus(response.error, true);
+            return;
+          }
+          if (response.data.entitlement) state.entitlement = response.data.entitlement;
+          renderEntitlement();
+          hideStatus();
+          showRetry(false);
+          state.proposal.angles = response.data.preview.ideas || [];
+          state.proposal.selectedIndex = -1;
+          renderAngleChoices(
+            response.data.preview.recommendedIndex,
+            response.data.preview.recommendationReason
+          );
+          el('wizard-intro-actions').style.display = 'none';
+          el('wizard-angles').classList.add('show');
+          el('proposal-wizard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        })
+        .withFailureHandler(function (error) {
+          setBusy(false);
+          showStatus(error && error.message ? error.message : 'Error', true);
+        })
+        .suggestProposalAngles({
+          ideaText: topic,
+          projectType: state.proposal.storyType
+        });
+    }
+    function renderAngleChoices(recommendedIndex, reason) {
+      var list = el('angle-list');
+      list.textContent = '';
+      el('recommendation-reason').textContent = reason || '';
+      state.proposal.angles.forEach(function (idea, index) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className =
+          'angle-card' + (index === state.proposal.selectedIndex ? ' active' : '');
+        button.onclick = function () { selectAngle(index); };
+        var title = document.createElement('b');
+        title.textContent = (index + 1) + '. ' + idea.title;
+        if (index + 1 === Number(recommendedIndex)) {
+          var badge = document.createElement('span');
+          badge.className = 'recommended';
+          badge.textContent = t('recommended');
+          title.appendChild(badge);
+        }
+        var angle = document.createElement('small');
+        angle.textContent = idea.angle;
+        var why = document.createElement('small');
+        why.textContent = idea.whyNow;
+        button.appendChild(title);
+        button.appendChild(angle);
+        button.appendChild(why);
+        list.appendChild(button);
+      });
+    }
+    function selectAngle(index) {
+      state.proposal.selectedIndex = index;
+      Array.prototype.forEach.call(
+        document.querySelectorAll('.angle-card'),
+        function (card, cardIndex) {
+          card.classList.toggle('active', cardIndex === index);
+        }
+      );
+    }
+    function finishProposalWizard() {
+      if (state.busy) return;
+      var custom = el('custom-angle').value.trim();
+      var selected = state.proposal.angles[state.proposal.selectedIndex];
+      var angle = custom || (selected && selected.angle) || '';
+      if (!angle) {
+        showStatus(t('angleRequired'), true);
+        return;
+      }
+      submitProposalWizard({
+        ideaText: state.proposal.topic,
+        selectedAngle: angle,
+        projectType: state.proposal.storyType
+      });
+    }
+    function submitProposalWizard(payload) {
+      if (state.busy) return;
+      setBusy(true);
+      showRetry(false);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          setBusy(false);
+          if (!response.ok) {
+            showStatus(response.error, true);
+            showRetry(!!response.retryAvailable);
+            if (response.entitlement) state.entitlement = response.entitlement;
+            renderEntitlement();
+            return;
+          }
+          if (response.data.entitlement) state.entitlement = response.data.entitlement;
+          renderEntitlement();
+          closeProposalWizard();
+          showStatus(t('proposalWritten', { tab: response.data.destination }), false);
+        })
+        .withFailureHandler(function (error) {
+          setBusy(false);
+          showStatus(error && error.message ? error.message : 'Error', true);
+        })
+        .completeProposalWizard(payload);
+    }
+    // Which readiness flag each message answers, and which strings name the steps. The
+    // rules themselves stay on the server in ACTION_PREREQUISITES; the panel only renders.
+    var NEED_KEYS = { hasText: 'needText', hasProposal: 'needProposal', hasDraft: 'needDraft' };
+    var STEP_KEYS = {
+      proposal: 'proposal', storyFramework: 'framework',
+      editDraft: 'editDraft', claimCheck: 'claimCheck'
+    };
+    var STEP_TABS = {
+      proposal: 'prepare', research: 'prepare', fieldworkPlan: 'prepare',
+      storyFramework: 'edit', editDraft: 'edit', claimCheck: 'verify'
+    };
+
+    function refreshGates() {
+      google.script.run.withSuccessHandler(function (response) {
+        if (!response || !response.ok) return;
+        state.gates = response.data.gates || {};
+        state.nextStep = response.data.nextStep || '';
+        renderGates();
+        renderNextStep();
+      }).getDocGates();
+    }
+    function renderGates() {
+      document.querySelectorAll('.action[data-action]').forEach(function (button) {
+        var actionId = button.getAttribute('data-action');
+        var gate = state.gates[actionId];
+        var ready = !gate || gate.ready;
+        button.classList.toggle('not-ready', !ready);
+        button.classList.toggle('suggested', ready && actionId === state.nextStep);
+        var help = button.querySelector('small');
+        if (!help) return;
+        // Ready steps keep their own description; a gated one says what it is waiting for.
+        help.textContent = ready
+          ? t(help.getAttribute('data-i18n'))
+          : t(NEED_KEYS[gate.requires] || 'needText');
+      });
+    }
+    function renderNextStep() {
+      var node = el('next-step');
+      var key = STEP_KEYS[state.nextStep];
+      var waiting = Object.keys(state.gates).some(function (actionId) {
+        return !state.gates[actionId].ready;
+      });
+      if (!key || !waiting) {
+        node.style.display = 'none';
+        return;
+      }
+      node.textContent = t('nextStep', { step: t(key) });
+      node.style.display = 'block';
+    }
+    function showGateCard(actionId, gate) {
+      state.pendingGate = actionId;
+      el('prereq-message').textContent = t(NEED_KEYS[gate.requires] || 'needText');
+      el('prereq-unblock').textContent = t('startWith', {
+        step: t(STEP_KEYS[gate.unblockedBy] || 'proposal')
+      });
+      el('prereq-card').style.display = 'block';
+      revealFeedback();
+    }
+    function hideGateCard() { el('prereq-card').style.display = 'none'; }
+    function goToUnblockingStep() {
+      var gate = state.gates[state.pendingGate];
+      var target = (gate && gate.unblockedBy) || 'proposal';
+      hideGateCard();
+      showTab(STEP_TABS[target] || 'prepare');
+      if (target === 'proposal') return startProposalWizard();
+      runActionUi(target);
+    }
+    function runAnyway() {
+      var pending = state.pendingGate;
+      hideGateCard();
+      if (pending) runActionUi(pending, true);
+    }
+
+    function runActionUi(actionId, force) {
+      if (state.busy) return;
+      // Explain before spending a call: an unmet prerequisite is answered here, not by an
+      // error from the backend after the user has waited for it.
+      var gate = state.gates[actionId];
+      if (!force && gate && !gate.ready) { showGateCard(actionId, gate); return; }
+      hideGateCard();
+      var payload = {};
+      setBusy(true);
+      showRetry(false);
+      google.script.run
+        .withSuccessHandler(function (response) {
+          setBusy(false);
+          if (!response.ok) {
+            showStatus(response.error, true);
+            showRetry(!!response.retryAvailable);
+            if (response.entitlement) state.entitlement = response.entitlement;
+            renderEntitlement();
+            return;
+          }
+          if (response.data.entitlement) state.entitlement = response.data.entitlement;
+          renderEntitlement();
+          refreshGates();
+          showStatus(t('written', { tab: response.data.destination }), false);
+        })
+        .withFailureHandler(function (error) {
+          setBusy(false);
+          showStatus(error && error.message ? error.message : 'Error', true);
+        })
+        .runAction(actionId, payload);
+    }
+    function retryWrite() {
+      setBusy(true);
+      google.script.run.withSuccessHandler(function (response) {
+        setBusy(false);
+        if (!response.ok) {
+          showStatus(response.error, true);
+          showRetry(true);
+          return;
+        }
+        showRetry(false);
+        showStatus(t('written', { tab: response.data.destination }), false);
+      }).withFailureHandler(function (error) {
+        setBusy(false);
+        showStatus(error && error.message ? error.message : 'Error', true);
+      }).retryLastWrite();
+    }
+    function saveSettingsUi() {
+      google.script.run.withSuccessHandler(function (settings) {
+        el('project-language').value = settings.projectLanguage || 'auto';
+        showStatus(t('saved'), false);
+      }).withFailureHandler(function (error) {
+        showStatus(error && error.message ? error.message : 'Error', true);
+      }).saveSettings({
+        styleText: el('style-text').value.trim(),
+        projectLanguage: el('project-language').value
+      });
+    }
+    function testService() {
+      el('settings-note').textContent = t('connecting');
+      google.script.run.withSuccessHandler(function (response) {
+        el('settings-note').textContent = response.ok ? t('serviceWorks') : response.error;
+      }).testConnection();
+    }
+    function activateLicenseUi() {
+      var code = el('license-code').value.trim();
+      google.script.run.withSuccessHandler(function (response) {
+        if (!response.ok) return showStatus(response.error, true);
+        state.entitlement = response.entitlement;
+        el('license-code').value = '';
+        renderEntitlement();
+        showStatus(t('activated'), false);
+      }).activateLicense(code);
+    }
+    function load() {
+      google.script.run.withSuccessHandler(function (settings) {
+        var firstOpen = !settings.uiLocale;
+        applyLocale(settings.uiLocale || 'ar');
+        el('style-text').value = settings.styleText || '';
+        el('project-language').value = settings.projectLanguage || 'auto';
+        if (firstOpen) el('language-gate').classList.add('show');
+        if (!settings.backendConfigured) el('settings').classList.add('show');
+        refreshEntitlement();
+        refreshGates();
+      }).getSettings();
+    }
+    load();
+  </script>
+</body>
+</html>

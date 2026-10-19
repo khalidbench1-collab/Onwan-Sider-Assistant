@@ -1,0 +1,16 @@
+{
+  "name": "onwan-editor",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "test": "node --test test/apps-script-static.test.cjs test/site-build.test.cjs && npm --prefix backend test",
+    "check": "node --test test/apps-script-static.test.cjs test/site-build.test.cjs && npm --prefix backend run check",
+    "build:backend": "npm --prefix backend run build",
+    "push": "clasp push",
+    "open": "clasp open-script",
+    "build:site": "node site/build.mjs"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.5.0"
+  }
+}
